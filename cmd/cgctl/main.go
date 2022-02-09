@@ -53,6 +53,8 @@ func main() {
 		statCommand,
 		newSystemdCommand,
 		deleteSystemdCommand,
+		listControllersSystemdCommand,
+		statSystemdCommand,
 	}
 	app.Before = func(clix *cli.Context) error {
 		if clix.GlobalBool("debug") {
@@ -180,6 +182,43 @@ var newSystemdCommand = cli.Command{
 			return err
 		}
 		return nil
+	},
+}
+
+var listControllersSystemdCommand = cli.Command{
+	Name:  "list-controllers-systemd",
+	Usage: "list controllers in a systemd managed cgroup",
+	Action: func(clix *cli.Context) error {
+		path := clix.Args().First()
+		c, err := v2.LoadSystemd("", path)
+		if err != nil {
+			return err
+		}
+		controllers, err := c.Controllers()
+		if err != nil {
+			return err
+		}
+		for _, c := range controllers {
+			fmt.Println(c)
+		}
+		return nil
+	},
+}
+
+var statSystemdCommand = cli.Command{
+	Name:  "stat-systemd",
+	Usage: "stat a systemd managed cgroup",
+	Action: func(clix *cli.Context) error {
+		path := clix.Args().First()
+		c, err := v2.LoadSystemd("", path)
+		if err != nil {
+			return err
+		}
+		stats, err := c.Stat()
+		if err != nil {
+			return err
+		}
+		return json.NewEncoder(os.Stdout).Encode(stats)
 	},
 }
 
